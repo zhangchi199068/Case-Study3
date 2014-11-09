@@ -1,0 +1,94 @@
+#tf–idf is the product of two statistics, term frequency and inverse document frequency.
+import math
+from operator import itemgetter
+
+from sklearn.feature_extraction.text import TfidfVectorizer
+def freq(word, document):
+  return document.split(None).count(word)
+
+def wordCount(document):
+  return len(document.split(None))
+
+def numDocsContaining(word,documentList):
+  count = 0
+  for document in documentList:
+    if freq(word,document) > 0:
+      count += 1
+  return count
+
+def tf(word, document):
+  return (freq(word,document) / float(wordCount(document)))
+
+def idf(word, documentList):
+  return math.log(len(documentList) / numDocsContaining(word,documentList))
+
+def tfidf(word, document, documentList):
+  return (tf(word,document) * idf(word,documentList))
+# Run the TfidVectorizer class on the training data above (docs_train).
+# Build a vectorizer / classifier pipeline that filters out tokens
+# that are too rare or too frequent
+from sklearn.feature_extraction.text import CountVectorizer
+pipeline1 = Pipeline([
+  ('vect', TfidfVectorizer(min_df=3, max_df=0.95)),
+  ('clf', LinearSVC(C=1000))
+])
+
+# Build a grid search to find out best min_df and max_df.
+# Fit the pipeline on the training set using grid search for the parameters
+parameters = { 
+    'vect__min_df': range(1, 6),
+    'vect__max_df': [ 0.75,0.8, 0.85, 0.9, 0.92, 0.94, 0.95]
+}
+grid_search = GridSearchCV(pipeline1, parameters, n_jobs=-1)
+grid_search.fit(docs_train, y_train)
+
+print 'Best parameters for TfidfVectorizer:'
+best_parameters, score, _ = max(grid_search.grid_scores_, key=lambda x: x[1])
+for param_name in sorted(parameters.keys()):
+    print("%s: %r" % (param_name, best_parameters[param_name]))
+print
+
+print lambda x: x[1]
+count_vect = CountVectorizer()
+X_train_counts = count_vect.fit_transform(docs_train)
+print X_train_counts.shape
+
+# Predict the outcome on the testing set and store it in a variable
+# named y_predicted
+y_predicted = grid_search.predict(docs_test)
+
+# Print the classification report
+print(metrics.classification_report(y_test, y_predicted, target_names=dataset.target_names))
+
+# Print and plot the confusion matrix
+cm = metrics.confusion_matrix(y_test, y_predicted)
+print(cm)
+
+# Build a vectorizer / classifier pipeline that filters out tokens
+# that are too rare or too frequent
+pipeline = Pipeline([
+  ('vect', TfidfVectorizer(min_df=4, max_df=0.75)),
+  ('clf', LinearSVC(C=1000))
+])
+
+# Build a grid search to find out best value for ngram range.
+# Fit the pipeline on the training set using grid search for the parameters
+parameters = { 'vect__ngram_range': [(1, 1), (1, 2), (1, 3), (2, 2), (2, 3), (3, 3)] }
+grid_search = GridSearchCV(pipeline, parameters, n_jobs=-1)
+grid_search.fit(docs_train, y_train)
+
+print 'Best parameters for TfidfVectorizer:'
+best_parameters, score, _ = max(grid_search.grid_scores_, key=lambda x: x[1])
+for param_name in sorted(parameters.keys()):
+    print("%s: %r" % (param_name, best_parameters[param_name]))
+print
+# Predict the outcome on the testing set and store it in a variable
+# named y_predicted
+y_predicted = grid_search.predict(docs_test)
+
+# Print the classification report
+print(metrics.classification_report(y_test, y_predicted, target_names=dataset.target_names))
+
+# Print and plot the confusion matrix
+cm = metrics.confusion_matrix(y_test, y_predicted)
+print(cm)
